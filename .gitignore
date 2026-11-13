@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+.cache/
+datasets/source/
+datasets/train/
+datasets/test/
+data result/
+*.log
