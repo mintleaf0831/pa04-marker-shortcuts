@@ -9,15 +9,14 @@ import numpy as np
 from PIL import Image
 
 CLASSES = ("tshirt", "shirt", "sneaker", "ankle_boot")
-TRAIN = ("clean", "fixed", "random")
-TEST = ("clean", "fixed", "swapped")
-SOURCE_IDS = np.array([0, 6, 7, 9])
+TRAIN_CONDITIONS = ("clean", "fixed", "random")
+TEST_CONDITIONS = ("clean", "fixed", "swapped")
+CLASS_IDS = np.array([0, 6, 7, 9])
 URL = "https://raw.githubusercontent.com/zalandoresearch/fashion-mnist/master/data/fashion/"
 
 
-def load_images(folder):
-    files = sorted((p.name, p, label) for label, name in enumerate(CLASSES)
-                   for p in (Path(folder) / name).glob("*.png"))
+def load_data(folder):
+    files = sorted((p.name, p, label) for label, name in enumerate(CLASSES) for p in (Path(folder) / name).glob("*.png"))
     if not files:
         raise ValueError(f"No PNG images in {folder}")
     images, labels = [], []
@@ -43,7 +42,7 @@ def read_source(folder, split):
     return arrays[0].reshape(-1, 28, 28), arrays[1]
 
 
-def build(root):
+def build_data(root):
     if (root / "train").exists() or (root / "test").exists():
         raise FileExistsError("Datasets already exist. Choose a new --data-dir to rebuild.")
     source = root / "source"
@@ -52,11 +51,10 @@ def build(root):
     corners = ((0, 0), (0, 30), (30, 0), (30, 30))
     for split, original_split in (("train", "train"), ("test", "t10k")):
         images, labels = read_source(source, original_split)
-        indices = np.flatnonzero(np.isin(labels, SOURCE_IDS))
+        indices = np.flatnonzero(np.isin(labels, CLASS_IDS))
         if split == "train":
-            indices = np.sort(np.concatenate([
-                rng.choice(np.flatnonzero(labels == c), 600, replace=False) for c in SOURCE_IDS]))
-        labels = np.searchsorted(SOURCE_IDS, labels[indices])
+            indices = np.sort(np.concatenate([ rng.choice(np.flatnonzero(labels == c), 600, replace=False) for c in CLASS_IDS]))
+        labels = np.searchsorted(CLASS_IDS, labels[indices])
         markers = {"clean": np.full(len(labels), -1), "fixed": labels.copy()}
         if split == "train":
             markers["random"] = np.empty(len(labels), dtype=int)
@@ -72,12 +70,11 @@ def build(root):
                 if position >= 0:
                     row, column = corners[position]
                     pixels[row:row + 2, column:column + 2] = 255
-                Image.fromarray(pixels).save(
-                    root / split / condition / CLASSES[label] / f"image_{index:05d}.png")
+                Image.fromarray(pixels).save( root / split / condition / CLASSES[label] / f"image_{index:05d}.png")
             print(f"Created {split}/{condition}: {len(labels)} images", flush=True)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=Path, default=Path("datasets"))
-    build(parser.parse_args().data_dir)
+    build_data(parser.parse_args().data_dir)
