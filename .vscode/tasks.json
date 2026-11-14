@@ -4,7 +4,7 @@
     {
       "label": "PA04: Train",
       "type": "process",
-      "command": "python",
+      "command": "${command:python.interpreterPath}",
       "args": [
         "train.py"
       ],
@@ -21,7 +21,7 @@
     {
       "label": "PA04: Evaluate",
       "type": "process",
-      "command": "python",
+      "command": "${command:python.interpreterPath}",
       "args": [
         "evaluate.py"
       ],

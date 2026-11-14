@@ -20,7 +20,10 @@ HEADERS = ("training_model", "no_marker", "matching_marker", "swapped_marker")
 
 def evaluate(data_dir, model_dir, output_dir):
     # Load the three saved models for prediction. No training takes place here.
-    models = {name: tf.keras.models.load_model(model_dir / f"model_{name}.keras", compile=False) for name in TRAIN_CONDITIONS}
+    models = {}
+    for name in TRAIN_CONDITIONS:
+        model_path = model_dir / f"model_{name}.keras"
+        models[name] = tf.keras.models.load_model(model_path, compile=False)
 
     # Rows represent training conditions. Columns represent test conditions.
     accuracy, macro_f1 = np.zeros((3, 3)), np.zeros((3, 3))
@@ -29,7 +32,8 @@ def evaluate(data_dir, model_dir, output_dir):
     for column, test in enumerate(TEST_CONDITIONS):
         # Load the test images and check the class sizes.
         images, labels = load_data(data_dir / "test" / test)
-        if len(labels) != 4000 or not np.array_equal(np.bincount(labels), [1000] * 4):
+        class_counts = np.bincount(labels, minlength=4)
+        if len(labels) != 4000 or list(class_counts) != [1000, 1000, 1000, 1000]:
             raise ValueError("Expected 1000 test images per class.")
 
         for row, name in enumerate(TRAIN_CONDITIONS):
@@ -43,9 +47,22 @@ def evaluate(data_dir, model_dir, output_dir):
             # The diagonal counts correct answers. Use these counts to measure performance.
             # Accuracy is the percent of correct answers. Macro-F1 gives each class equal weight.
             # Each class F1 is twice its correct count divided by its true count plus predicted count.
-            confusion = np.bincount(4 * labels + predicted, minlength=16).reshape(4, 4)
-            accuracy[row, column] = np.trace(confusion) / confusion.sum() * 100
-            macro_f1[row, column] = np.mean( 2 * confusion.diagonal() / (confusion.sum(axis=0) + confusion.sum(axis=1)))
+            confusion = np.zeros((4, 4), dtype=int)
+            for actual, guess in zip(labels, predicted):
+                confusion[actual, guess] += 1
+
+            correct_count = np.sum(predicted == labels)
+            accuracy[row, column] = correct_count / len(labels) * 100
+
+            # Calculate one F1 score per class, then take their mean.
+            class_f1 = []
+            for label in range(4):
+                correct = confusion[label, label]
+                actual_count = confusion[label, :].sum()
+                predicted_count = confusion[:, label].sum()
+                f1 = 2 * correct / (actual_count + predicted_count)
+                class_f1.append(f1)
+            macro_f1[row, column] = np.mean(class_f1)
             print(f"{name} / {test}: {accuracy[row, column]:.2f}%", flush=True)
 
     # Save one small table per metric. Accuracy uses percent; Macro-F1 uses 0-1.
@@ -55,7 +72,11 @@ def evaluate(data_dir, model_dir, output_dir):
             writer = csv.writer(file)
             writer.writerow(HEADERS)
             decimals = 2 if filename.startswith("01") else 4
-            writer.writerows([name, *[f"{v:.{decimals}f}" for v in values[row]]] for row, name in enumerate(TRAIN_CONDITIONS))
+            for row, name in enumerate(TRAIN_CONDITIONS):
+                cells = [name]
+                for value in values[row]:
+                    cells.append(f"{value:.{decimals}f}")
+                writer.writerow(cells)
 
     return accuracy, macro_f1
 

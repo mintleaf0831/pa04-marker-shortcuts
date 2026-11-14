@@ -18,7 +18,12 @@ URL = "https://raw.githubusercontent.com/zalandoresearch/fashion-mnist/master/da
 
 def load_data(folder):
     # Read each class folder and keep the images in a fixed order.
-    files = sorted((p.name, p, label) for label, name in enumerate(CLASSES) for p in (Path(folder) / name).glob("*.png"))
+    files = []
+    for label, name in enumerate(CLASSES):
+        class_folder = Path(folder) / name
+        for path in class_folder.glob("*.png"):
+            files.append((path.name, path, label))
+    files.sort()
     if not files:
         raise ValueError(f"No PNG images in {folder}")
 
@@ -32,7 +37,11 @@ def load_data(folder):
         labels.append(label)
 
     # Scale pixel values from 0-255 to 0-1. Add one channel for gray images.
-    return np.stack(images)[..., None].astype("float32") / 255, np.array(labels)
+    images = np.stack(images)
+    images = images.reshape(len(images), 32, 32, 1)
+    images = images.astype("float32") / 255
+    labels = np.array(labels)
+    return images, labels
 
 
 def read_source(folder, split):
@@ -45,9 +54,15 @@ def read_source(folder, split):
         if not path.exists():
             with urlopen(URL + filename, timeout=60) as response:
                 path.write_bytes(response.read())
-        arrays.append(np.frombuffer(gzip.decompress(path.read_bytes()), "uint8", offset=offset))
 
-    return arrays[0].reshape(-1, 28, 28), arrays[1]
+        compressed_data = path.read_bytes()
+        raw_data = gzip.decompress(compressed_data)
+        values = np.frombuffer(raw_data, dtype="uint8", offset=offset)
+        arrays.append(values)
+
+    images = arrays[0].reshape(-1, 28, 28)
+    labels = arrays[1]
+    return images, labels
 
 
 def build_data(root):
@@ -64,14 +79,20 @@ def build_data(root):
     # Use the official training and test sets separately.
     for split, original_split in (("train", "train"), ("test", "t10k")):
         images, labels = read_source(source, original_split)
-        indices = np.flatnonzero(np.isin(labels, CLASS_IDS))
-
-        # Choose 600 images per class for training. Keep all test images from these classes.
-        if split == "train":
-            indices = np.sort(np.concatenate([ rng.choice(np.flatnonzero(labels == c), 600, replace=False) for c in CLASS_IDS]))
+        # Choose 600 images per class for training. Use all selected-class test images.
+        selected = []
+        for class_id in CLASS_IDS:
+            class_indices = np.where(labels == class_id)[0]
+            if split == "train":
+                class_indices = rng.choice(class_indices, 600, replace=False)
+            selected.extend(class_indices)
+        indices = np.array(sorted(selected))
 
         # Change the original class numbers (0, 6, 7, 9) to 0, 1, 2, 3.
-        labels = np.searchsorted(CLASS_IDS, labels[indices])
+        selected_labels = labels[indices]
+        labels = np.zeros(len(indices), dtype=int)
+        for new_label, class_id in enumerate(CLASS_IDS):
+            labels[selected_labels == class_id] = new_label
 
         # -1 means no marker. In the fixed condition, the class sets the corner.
         markers = {"clean": np.full(len(labels), -1), "fixed": labels.copy()}
@@ -79,13 +100,16 @@ def build_data(root):
             # Within each class, use each corner 150 times and mix their order.
             markers["random"] = np.empty(len(labels), dtype=int)
             for label in range(4):
-                markers["random"][labels == label] = rng.permutation(np.repeat(np.arange(4), 150))
+                positions = np.repeat([0, 1, 2, 3], 150)
+                positions = rng.permutation(positions)
+                markers["random"][labels == label] = positions
         else:
             # Move each test marker to the next class corner. Keep the true label unchanged.
             markers["swapped"] = (labels + 1) % 4
         for condition, positions in markers.items():
             for name in CLASSES:
-                (root / split / condition / name).mkdir(parents=True, exist_ok=True)
+                class_folder = root / split / condition / name
+                class_folder.mkdir(parents=True, exist_ok=True)
             for index, label, position in zip(indices, labels, positions):
                 # Add a black border so the white marker does not cover the clothing.
                 pixels = np.pad(images[index], 2)
@@ -94,13 +118,18 @@ def build_data(root):
                     pixels[row:row + 2, column:column + 2] = 255
 
                 # Save each image in its true class folder, using its original image number.
-                Image.fromarray(pixels).save( root / split / condition / CLASSES[label] / f"image_{index:05d}.png")
+                filename = f"image_{index:05d}.png"
+                image_path = root / split / condition / CLASSES[label] / filename
+                image = Image.fromarray(pixels)
+                image.save(image_path)
             print(f"Created {split}/{condition}: {len(labels)} images", flush=True)
 
 
 if __name__ == "__main__":
-    # Allow a different data folder to be chosen from the command line.
+    # By default, use the datasets folder next to this file.
+    # A custom --data-dir path is relative to the terminal folder unless it is absolute.
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-dir", type=Path, default=Path("datasets"))
+    parser.add_argument("--data-dir", type=Path, default=Path(__file__).resolve().parent / "datasets")
 
-    build_data(parser.parse_args().data_dir)
+    args = parser.parse_args()
+    build_data(args.data_dir)
