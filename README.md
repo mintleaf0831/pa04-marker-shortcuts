@@ -1,7 +1,5 @@
 # Clothing classification with corner markers
 
-A PA04 experiment by Junhoe Kim (20250494).
-
 Does a clothing classifier learn clothing features or a white corner marker?
 We compare two questions:
 
