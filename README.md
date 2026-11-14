@@ -7,7 +7,6 @@ Junhoe Kim's PA04 experiment.
 - build_datasets.py downloads Fashion-MNIST and creates the PNG folders.
 - train_pa04.py trains three CNNs for 15 epochs.
 - evaluate_pa04.py creates two small comparison tables.
-- run_repeats.py repeats training with five seeds and reports mean and sample SD.
 
 ## Setup
 
@@ -49,11 +48,11 @@ https://arxiv.org/abs/1708.07747
 
 ## Evaluate or train
 
-Pretrained seed-42 models are included in models/. After building the data:
+Pretrained seed-42 models are included in models/seed_42/. After building the data:
 
     python evaluate_pa04.py
 
-Results appear under data result/evaluation/.
+Results appear under data result/seed_42/ with the default seed.
 
 - 01_accuracy_percent.csv gives accuracy percentages.
 - 02_macro_f1.csv gives scores from 0 to 1.
@@ -66,17 +65,37 @@ To train the three models yourself:
 The CNN has 16- and 32-filter 3 x 3 convolution layers, max pooling, a 32-unit
 dense layer and four-class softmax output. It uses Adam 0.001, batch size 64
 and sparse categorical cross-entropy. Training has a fixed 15-epoch budget.
-Training replaces model files in its output folder. For a separate run:
+## Manually select a seed
 
-    python train_pa04.py --seed 43 --out models/seed_43
+Near the top of train_pa04.py, keep exactly one line active:
 
-## Repeat five seeds
+    SEED = 42
+    # SEED = 43
+    # SEED = 44
+    # SEED = 45
+    # SEED = 46
 
-    python run_repeats.py
+To use seed 43, comment the first line and remove # from the second line.
+Save train_pa04.py before running either script. Comments next to the selection
+explain the steps. All source comments are in English.
 
-This retrains all models with seeds 42-46 and evaluates them. Results are
-written to data result/repeated_runs/summary.csv. Training and test data stay
-fixed. Only initialization and shuffling vary. Sample SD uses n-1.
+    python train_pa04.py
+    python evaluate_pa04.py
+
+Training runs the three marker conditions once for the selected seed.
+Evaluation imports the selected seed from train_pa04.py automatically.
+Models go to models/seed_43/ and results go to data result/seed_43/.
+For another seed, change the active line and repeat these two commands.
+Running the same seed again replaces that seed's model and result files.
+
+For direct command-line selection, both scripts also support --seed:
+
+    python train_pa04.py --seed 43
+    python evaluate_pa04.py --seed 43
+
+Use the same --seed value for both commands if overriding the commented block.
+To evaluate a previously trained seed, select it and run only evaluate_pa04.py.
+The dataset selection remains fixed at seed 42 in build_datasets.py.
 
 Reference mean accuracy percentages and sample SD in percentage points:
 

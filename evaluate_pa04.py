@@ -9,6 +9,11 @@ os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 import numpy as np
 import tensorflow as tf
 from build_datasets import TEST, TRAIN, load_images
+from train_pa04 import ROOT, SEED
+
+# Choose the seed in train_pa04.py and save that file before evaluation.
+# This script automatically reads models/seed_<seed>/ and writes data result/seed_<seed>/.
+# Train that seed first. To evaluate an older run, select its SEED line and run only this file.
 
 HEADERS = ("training_model", "no_marker", "matching_marker", "swapped_marker")
 
@@ -45,8 +50,14 @@ def evaluate(data_dir, model_dir, output_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-dir", type=Path, default=Path("datasets"))
-    parser.add_argument("--models", type=Path, default=Path("models"))
-    parser.add_argument("--out", type=Path, default=Path("data result/evaluation"))
+    parser.add_argument("--data-dir", type=Path, default=ROOT / "datasets")
+    parser.add_argument("--models", type=Path)
+    parser.add_argument("--out", type=Path)
+    parser.add_argument("--seed", type=int, default=SEED)
     args = parser.parse_args()
-    evaluate(args.data_dir, args.models, args.out)
+    if args.seed < 0:
+        parser.error("Seed must be nonnegative.")
+    model_dir = args.models or ROOT / "models" / f"seed_{args.seed}"
+    output_dir = args.out or ROOT / "data result" / f"seed_{args.seed}"
+    print(f"Evaluating seed {args.seed} from {model_dir}", flush=True)
+    evaluate(args.data_dir, model_dir, output_dir)

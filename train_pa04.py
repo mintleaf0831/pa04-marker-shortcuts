@@ -10,6 +10,21 @@ import numpy as np
 import tensorflow as tf
 from build_datasets import TRAIN, load_images
 
+# MANUAL SEED SELECTION
+# Keep exactly ONE SEED line active (without #).
+# Example: comment SEED = 42 and uncomment SEED = 43 to use seed 43.
+# Save this file, run train_pa04.py, then run evaluate_pa04.py.
+# Evaluation reads this setting automatically. No second seed edit is needed.
+# The seed changes model initialization and shuffling, not the dataset.
+SEED = 42
+# SEED = 43
+# SEED = 44
+# SEED = 45
+# SEED = 46
+
+ROOT = Path(__file__).resolve().parent
+
+
 
 def make_model():
     model = tf.keras.Sequential([
@@ -27,7 +42,7 @@ def make_model():
     return model
 
 
-def train(data_dir, output_dir, seed=42, epochs=15):
+def train(data_dir, output_dir, seed=SEED, epochs=15):
     tf.config.experimental.enable_op_determinism()
     output_dir.mkdir(parents=True, exist_ok=True)
     for condition in TRAIN:
@@ -48,11 +63,14 @@ def train(data_dir, output_dir, seed=42, epochs=15):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-dir", type=Path, default=Path("datasets"))
-    parser.add_argument("--out", type=Path, default=Path("models"))
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--data-dir", type=Path, default=ROOT / "datasets")
+    parser.add_argument("--out", type=Path)
+    parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--epochs", type=int, default=15)
     args = parser.parse_args()
     if args.seed < 0 or args.epochs < 1:
         parser.error("Seed must be nonnegative and epochs must be positive.")
-    train(args.data_dir, args.out, args.seed, args.epochs)
+    output_dir = args.out or ROOT / "models" / f"seed_{args.seed}"
+    print(f"Selected seed {args.seed}. Models will be saved in {output_dir}", flush=True)
+    train(args.data_dir, output_dir, args.seed, args.epochs)
+
