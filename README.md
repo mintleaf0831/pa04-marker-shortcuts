@@ -186,14 +186,6 @@ use `evaluate.py --models FOLDER`; its `--out FOLDER` sets the results destinati
 `train.py --epochs N` changes training length. Use 15 to reproduce this experiment.
 Run `python SCRIPT.py --help` for all options.
 
-## VS Code
-
-Open the project folder and select the installed environment with
-**Python: Select Interpreter**. The included debug configurations use that interpreter.
-The Train/Evaluate tasks also use the selected Python interpreter. Train first
-when evaluating a seed whose models do not exist. The Full experiment task
-runs training and evaluation in order; it does not build missing datasets.
-
 ## Reference results
 
 Mean accuracy +/- sample standard deviation over five training seeds (42-46):
