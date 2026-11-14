@@ -30,7 +30,19 @@ def build_model():
     # The CNN learns small image patterns with two convolution layers.
     # Pooling makes the image maps smaller. Dense layers use these patterns to choose a class.
     # The input is a 32 x 32 gray image. Softmax gives four class probabilities.
-    model = tf.keras.Sequential([ tf.keras.Input(shape=(32, 32, 1)), tf.keras.layers.Conv2D(16, 3, padding="same", activation="relu"), tf.keras.layers.MaxPooling2D(), tf.keras.layers.Conv2D(32, 3, padding="same", activation="relu"), tf.keras.layers.MaxPooling2D(), tf.keras.layers.Flatten(), tf.keras.layers.Dense(32, activation="relu"), tf.keras.layers.Dense(4, activation="softmax"), ])
+    model = tf.keras.Sequential()
+    model.add(tf.keras.Input(shape=(32, 32, 1)))
+
+    # Find image patterns, then make the feature maps smaller.
+    model.add(tf.keras.layers.Conv2D(16, 3, padding="same", activation="relu"))
+    model.add(tf.keras.layers.MaxPooling2D())
+    model.add(tf.keras.layers.Conv2D(32, 3, padding="same", activation="relu"))
+    model.add(tf.keras.layers.MaxPooling2D())
+
+    # Combine the patterns and output four class probabilities.
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(32, activation="relu"))
+    model.add(tf.keras.layers.Dense(4, activation="softmax"))
 
     # Cross-entropy measures prediction error. Adam updates the weights to reduce it.
     # The learning rate is 0.001. Accuracy tracks the share of correct predictions.
@@ -48,7 +60,8 @@ def train(data_dir, output_dir, seed=SEED, epochs=15):
     for condition in TRAIN_CONDITIONS:
         # Load training images and check the class sizes.
         images, labels = load_data(data_dir / "train" / condition)
-        if len(labels) != 2400 or not np.array_equal(np.bincount(labels), [600] * 4):
+        class_counts = np.bincount(labels, minlength=4)
+        if len(labels) != 2400 or list(class_counts) != [600, 600, 600, 600]:
             raise ValueError("Expected 600 training images per class.")
 
         # Clear the old model state and reset the seed before making a new model.
@@ -66,7 +79,9 @@ def train(data_dir, output_dir, seed=SEED, epochs=15):
         # Save the trained model and its settings so it can be tested later.
         model.save(output_dir / f"model_{condition}.keras")
         settings = {"condition": condition, "seed": seed, "epochs": epochs, "batch_size": 64, "learning_rate": 0.001, "tensorflow": tf.__version__}
-        (output_dir / f"settings_{condition}.json").write_text( json.dumps(settings, indent=2) + "\n", encoding="utf-8")
+        settings_path = output_dir / f"settings_{condition}.json"
+        settings_text = json.dumps(settings, indent=2)
+        settings_path.write_text(settings_text + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":
