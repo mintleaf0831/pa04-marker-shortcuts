@@ -78,7 +78,11 @@ def train(data_dir, output_dir, seed=SEED, epochs=15):
 
         # Save the trained model and its settings so it can be tested later.
         model.save(output_dir / f"model_{condition}.keras")
-        settings = {"condition": condition, "seed": seed, "epochs": epochs, "batch_size": 64, "learning_rate": 0.001, "tensorflow": tf.__version__}
+        settings = {"condition": condition, "seed": seed, "epochs": epochs, "batch_size": 64, "learning_rate": 0.001}
+        # Record the software versions and the size of one input image.
+        settings["tensorflow_version"] = tf.__version__
+        settings["numpy_version"] = np.__version__
+        settings["image_shape"] = list(images.shape[1:])
         settings_path = output_dir / f"settings_{condition}.json"
         settings_text = json.dumps(settings, indent=2)
         settings_path.write_text(settings_text + "\n", encoding="utf-8")

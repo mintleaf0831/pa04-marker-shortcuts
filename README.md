@@ -162,7 +162,11 @@ and 15 epochs. Each condition starts with a new model and the same seed.
 Training saves the final epoch, without validation-based epoch selection.
 
 A `.keras` file stores the trained model. A `settings_*.json` file records its
-training settings; it is not another model. Evaluation loads the `.keras` files.
+condition, seed, epochs, batch size, learning rate, `tensorflow_version`,
+`numpy_version`, and `image_shape` (height, width, channels: `[32, 32, 1]`).
+These versions are read from the training environment, and the shape is read
+from the loaded images. The JSON is a settings record, not another model.
+Evaluation loads the `.keras` files.
 
 ### Select a seed manually
 
