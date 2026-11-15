@@ -5,5 +5,8 @@ __pycache__/
 datasets/source/
 datasets/train/
 datasets/test/
-results/
+results/*
+!results/reference/
+results/reference/*
+!results/reference/seed_*.csv
 *.log

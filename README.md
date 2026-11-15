@@ -14,6 +14,7 @@ We compare two questions:
 | `train.py` | Build and train one CNN for each of the three training conditions |
 | `evaluate.py` | Load saved models and create accuracy and macro-F1 tables |
 | `models/seed_42/` | Three pretrained models and their original training settings |
+| `results/reference/seed_42.csv` to `seed_46.csv` | Recorded full-precision metrics for the five-seed experiment |
 | `requirements.txt` | Python package versions for pip |
 | `environment.yml` | Conda environment with the same package versions |
 | `datasets/previews/marker_examples.png` | Example images |
@@ -266,5 +267,36 @@ points, versus 1.73 +/- 1.04 for random training. Clean training still has the
 highest swapped accuracy. Five seeds measure training variability for one
 fixed dataset and marker assignment, not variation across new datasets.
 
-Full PNG datasets and generated CSV tables are not tracked. The data generator,
-code, pinned environment, and seed-42 model weights support reproduction.
+Full PNG datasets and newly generated evaluation tables are not tracked.
+The five recorded reference CSVs in `results/reference/` are included.
+The data generator, code, pinned environment, and seed-42 model weights support reproduction.
+
+
+### Recorded per-seed metrics
+
+The five CSVs in [results/reference/](results/reference/) contain the recorded
+evaluation metrics for seeds 42-46, with 15 training epochs per model.
+Each file has nine rows: three training conditions times three test conditions.
+Every original field and numeric value is preserved. These are the original
+experiment records, not new training runs or individual image predictions.
+
+| Column | Meaning |
+| --- | --- |
+| `seed` | Training seed |
+| `training` | Clean, fixed, or random training |
+| `test` | Clean (no marker), fixed (matching), or swapped test |
+| `accuracy` | Fraction correct, from 0 to 1; multiply by 100 for percent |
+| `macro_f1` | Macro F1, from 0 to 1 |
+| `recall_*` | Recall for each clothing class, from 0 to 1 |
+
+Use these full-precision values to verify means, sample standard deviations,
+paired differences, and ranges. For example, the fixed model's swapped
+accuracy ranges from 0.05975 to 0.41375 (5.975%-41.375%, displayed as
+5.98%-41.38%). For paired drops, subtract test accuracies within each seed
+before calculating the mean and sample standard deviation.
+
+Reference files use accuracy fractions. The two tables from `evaluate.py`
+use accuracy percentages and rounded display values. New evaluations still
+write to `results/seed_<seed>/`; they do not overwrite `results/reference/`.
+Only seed-42 model weights are included. To reproduce other seeds by training,
+follow the manual seed sequence above and compare with these reference files.
