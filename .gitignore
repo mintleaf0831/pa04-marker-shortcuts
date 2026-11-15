@@ -5,5 +5,5 @@ __pycache__/
 datasets/source/
 datasets/train/
 datasets/test/
-data result/
+results/
 *.log

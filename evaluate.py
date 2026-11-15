@@ -12,7 +12,7 @@ from data import TEST_CONDITIONS, TRAIN_CONDITIONS, load_data
 from train import ROOT, SEED
 
 # Choose the seed in train.py and save that file before evaluation.
-# This script automatically reads models/seed_<seed>/ and writes data result/seed_<seed>/.
+# This script automatically reads models/seed_<seed>/ and writes results/seed_<seed>/.
 # Train that seed first. To evaluate an older run, select its SEED line and run only this file.
 
 HEADERS = ("training_model", "no_marker", "matching_marker", "swapped_marker")
@@ -95,6 +95,6 @@ if __name__ == "__main__":
 
     # Read the selected seed's models and save its results in a separate folder.
     model_dir = args.models or ROOT / "models" / f"seed_{args.seed}"
-    output_dir = args.out or ROOT / "data result" / f"seed_{args.seed}"
+    output_dir = args.out or ROOT / "results" / f"seed_{args.seed}"
     print(f"Evaluating seed {args.seed} from {model_dir}", flush=True)
     evaluate(args.data_dir, model_dir, output_dir)

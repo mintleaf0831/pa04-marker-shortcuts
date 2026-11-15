@@ -91,7 +91,7 @@ The second command reads the three included models in `models/seed_42/`.
 It does not train them. It produces:
 
 ```text
-data result/seed_42/
+results/seed_42/
     01_accuracy_percent.csv
     02_macro_f1.csv
 ```
@@ -189,7 +189,7 @@ Complete one seed at a time:
 **Do not change the selected seed between training and evaluation.**
 Evaluation reads the saved `SEED` value from `train.py`; it does not remember
 which seed was trained most recently. For seed 43, models go to
-`models/seed_43/` and results go to `data result/seed_43/`.
+`models/seed_43/` and results go to `results/seed_43/`.
 
 The seed changes initial weights and training image order, not the dataset.
 Build the dataset once; you do not need to regenerate it for each seed.
