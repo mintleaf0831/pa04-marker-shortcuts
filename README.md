@@ -6,6 +6,14 @@ We compare two questions:
 1. How much does accuracy drop when a class-specific marker is removed or swapped?
 2. Does training with balanced random markers reduce this drop?
 
+## Final version
+
+Use the **`main` branch** for submission, download, and reproduction.
+It contains the complete experiment, all five seeds' pretrained models, and
+recorded reference metrics. Other branches are historical work or backup
+branches, not alternative final versions. Squash-merged work can still appear
+as unmerged by commit ancestry even though its changes are already in `main`.
+
 ## Files
 
 | File or folder | Purpose |
@@ -13,7 +21,7 @@ We compare two questions:
 | `data.py` | Download Fashion-MNIST, create PNG images, and read images for training or testing |
 | `train.py` | Build and train one CNN for each of the three training conditions |
 | `evaluate.py` | Load saved models and create accuracy and macro-F1 tables |
-| `models/seed_42/` | Three pretrained models and their original training settings |
+| `models/seed_42/` to `seed_46/` | All 15 pretrained models and their training settings |
 | `results/reference/seed_42.csv` to `seed_46.csv` | Recorded full-precision metrics for the five-seed experiment |
 | `requirements.txt` | Python package versions for pip |
 | `environment.yml` | Conda environment with the same package versions |
@@ -198,8 +206,10 @@ which seed was trained most recently. For seed 43, models go to
 
 The seed changes initial weights and training image order, not the dataset.
 Build the dataset once; you do not need to regenerate it for each seed.
-Only seed-42 pretrained models are included. Train other seeds before evaluating
-them. Running a seed again replaces that seed's model or result files.
+Pretrained models for seeds 42-46 are included. To evaluate one without
+retraining, select its seed in `train.py`, save, and run `python evaluate.py`.
+Running training again replaces that seed's model files; evaluation replaces
+only that seed's generated result tables.
 
 To evaluate an existing run, select its seed in `train.py`, save the file,
 and run only `python evaluate.py`.
@@ -269,7 +279,7 @@ fixed dataset and marker assignment, not variation across new datasets.
 
 Full PNG datasets and newly generated evaluation tables are not tracked.
 The five recorded reference CSVs in `results/reference/` are included.
-The data generator, code, pinned environment, and seed-42 model weights support reproduction.
+The data generator, code, pinned environment, and all five seeds' model weights support reproduction.
 
 
 ### Recorded per-seed metrics
@@ -298,5 +308,14 @@ before calculating the mean and sample standard deviation.
 Reference files use accuracy fractions. The two tables from `evaluate.py`
 use accuracy percentages and rounded display values. New evaluations still
 write to `results/seed_<seed>/`; they do not overwrite `results/reference/`.
-Only seed-42 model weights are included. To reproduce other seeds by training,
-follow the manual seed sequence above and compare with these reference files.
+All five seeds' model weights are included. Select each seed in `train.py`,
+save, and run `python evaluate.py` to check the reference metrics without
+training again. For independent retraining, follow the manual sequence above.
+
+### Included model files
+
+Each folder from `models/seed_42/` through `models/seed_46/` contains
+`model_clean.keras`, `model_fixed.keras`, and `model_random.keras`, with three
+matching `settings_*.json` files. All were trained for 15 epochs in the recorded
+experiment. The four additional seeds use the original saved weights, not new
+training runs. Use the same installed environment described above to load them.
