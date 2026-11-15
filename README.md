@@ -75,11 +75,12 @@ Conda and pip setup methods. If an installation fails, fix it before running scr
 
 ## Quick start: test the included models
 
-Run these commands from the project folder after activating your environment:
+Run these commands from the project folder after activating your environment.
+First check that `SEED = 42` is the only active seed line in `train.py`, and save it:
 
 ```bash
 python data.py
-python evaluate.py --seed 42
+python evaluate.py
 ```
 
 The first command downloads four original `.gz` files from the official
@@ -144,7 +145,8 @@ Dataset paper: [Xiao et al., 2017](https://arxiv.org/abs/1708.07747).
 ## Train your own models
 
 Build the dataset first with `python data.py` if you skipped the quick start.
-The default commands below retrain seed 42 and replace the included model files.
+The commands below train and evaluate the seed selected in `train.py`.
+With `SEED = 42`, they replace the included seed-42 model files.
 Back up `models/seed_42/` if you want to keep the downloaded models.
 
 ```bash
@@ -175,25 +177,30 @@ SEED = 42
 ```
 
 For seed 43, comment out `SEED = 42` and uncomment `SEED = 43`.
-Save the file, run `train.py`, then run `evaluate.py`.
-Evaluation imports the selected seed automatically. Models go to
-`models/seed_43/`, and results go to `data result/seed_43/`.
+
+Complete one seed at a time:
+
+1. Keep exactly one `SEED` line active in `train.py` and save the file.
+2. Run `python train.py`. Wait until all three training conditions finish.
+3. Keep the same `SEED` value and run `python evaluate.py`.
+4. Wait until all nine model-test combinations finish and both CSV files are saved.
+5. Only then select the next seed, save `train.py`, and repeat steps 2-4.
+
+**Do not change the selected seed between training and evaluation.**
+Evaluation reads the saved `SEED` value from `train.py`; it does not remember
+which seed was trained most recently. For seed 43, models go to
+`models/seed_43/` and results go to `data result/seed_43/`.
 
 The seed changes initial weights and training image order, not the dataset.
-For another seed, repeat these steps. Only seed-42 pretrained models are
-included; train other seeds before evaluating them. Running a seed again
-replaces that seed's model or result files.
+Build the dataset once; you do not need to regenerate it for each seed.
+Only seed-42 pretrained models are included. Train other seeds before evaluating
+them. Running a seed again replaces that seed's model or result files.
 
-Both scripts also accept a command-line seed, which overrides the active line:
+To evaluate an existing run, select its seed in `train.py`, save the file,
+and run only `python evaluate.py`.
 
-```bash
-python train.py --seed 43
-python evaluate.py --seed 43
-```
-
-Use the same seed for both commands. To evaluate an existing run, run only
-`evaluate.py` with that seed. For the five-seed reference experiment, repeat
-training and evaluation for seeds 42, 43, 44, 45, and 46 with 15 epochs.
+For the five-seed reference experiment, follow the complete training-and-evaluation
+sequence for seed 42, then 43, 44, 45, and 46, using 15 epochs for each.
 For each matching table cell, compute the mean and sample standard deviation
 (ddof=1) across the five results. In a spreadsheet, these are `AVERAGE` and
 `STDEV.S`. Per-run CSVs are rounded, so aggregated values can differ slightly
@@ -213,8 +220,8 @@ To create another dataset without deleting the first one:
 
 ```bash
 python data.py --data-dir datasets_new
-python train.py --data-dir datasets_new --seed 43
-python evaluate.py --data-dir datasets_new --seed 43
+python train.py --data-dir datasets_new
+python evaluate.py --data-dir datasets_new
 ```
 
 After an interrupted build, use a new data folder, or back up and remove the
