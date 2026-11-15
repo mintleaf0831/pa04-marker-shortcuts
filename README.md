@@ -21,7 +21,9 @@ We compare two questions:
 
 ## Installation
 
-Download the repository ZIP and extract it, or clone it:
+Download the repository ZIP and extract it, or clone it.
+For ZIP downloads, open a terminal in the extracted folder containing `data.py`
+and `requirements.txt` (usually `pa04-marker-shortcuts-main`). For Git:
 
 ```bash
 git clone https://github.com/mintleaf0831/pa04-marker-shortcuts.git
@@ -34,6 +36,8 @@ A GPU is not required. Results may vary with software versions or hardware.
 
 ### Conda
 
+Install Miniconda or Anaconda first if `conda` is not available.
+
 ```bash
 conda env create -f environment.yml
 conda activate pa04-markers
@@ -44,11 +48,30 @@ listed above; Conda may install another available 3.12 patch version.
 
 ### pip
 
-Use Python 3.12 in an activated virtual environment, then run:
+First install Python 3.12. Create and activate a new virtual environment.
 
-```bash
+Windows (Command Prompt):
+
+```bat
+py -3.12 -m venv .venv
+.venv\Scripts\activate.bat
 python -m pip install -r requirements.txt
 ```
+
+macOS/Linux (with Python 3.12 installed):
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+Windows PowerShell users can activate with `.\.venv\Scripts\Activate.ps1`.
+If PowerShell blocks activation, use the Command Prompt steps above.
+If `py -3.12` cannot find Python, install Python 3.12 first or replace
+`py -3.12` with the full path to your Python 3.12 executable.
+Keep the same environment active for all commands below. You do not need both
+Conda and pip setup methods. If an installation fails, fix it before running scripts.
 
 ## Quick start: test the included models
 
@@ -76,6 +99,17 @@ Each table has three rows (clean, fixed, random training) and three result
 columns (no marker, matching marker, swapped marker). Accuracy is in percent;
 macro F1 ranges from 0 to 1 and gives each class equal weight. A higher value
 is better. The terminal prints accuracy for all nine combinations.
+
+Expected accuracy for the **included seed-42 models** (not the five-seed mean):
+
+| Training model | No marker | Matching marker | Swapped marker |
+| --- | ---: | ---: | ---: |
+| Clean | 88.50 | 83.45 | 91.35 |
+| Fixed | 82.80 | 99.98 | 41.38 |
+| Random | 89.25 | 90.28 | 87.60 |
+
+These are percentages rounded to two decimals. The five-seed mean table near
+the end of this README uses five separate training runs, so its values differ.
 
 ## Data and marker rules
 
@@ -108,6 +142,10 @@ Source: [official Fashion-MNIST repository](https://github.com/zalandoresearch/f
 Dataset paper: [Xiao et al., 2017](https://arxiv.org/abs/1708.07747).
 
 ## Train your own models
+
+Build the dataset first with `python data.py` if you skipped the quick start.
+The default commands below retrain seed 42 and replace the included model files.
+Back up `models/seed_42/` if you want to keep the downloaded models.
 
 ```bash
 python train.py
@@ -156,7 +194,10 @@ python evaluate.py --seed 43
 Use the same seed for both commands. To evaluate an existing run, run only
 `evaluate.py` with that seed. For the five-seed reference experiment, repeat
 training and evaluation for seeds 42, 43, 44, 45, and 46 with 15 epochs.
-Compute means and sample standard deviations (ddof=1) across the five results.
+For each matching table cell, compute the mean and sample standard deviation
+(ddof=1) across the five results. In a spreadsheet, these are `AVERAGE` and
+`STDEV.S`. Per-run CSVs are rounded, so aggregated values can differ slightly
+from summaries computed from unrounded predictions.
 The scripts process one selected seed per execution; they do not aggregate runs.
 
 ## Paths and rebuilding data
@@ -184,7 +225,13 @@ new `--data-dir` folder.
 `train.py --out FOLDER` changes the model destination. To evaluate those models,
 use `evaluate.py --models FOLDER`; its `--out FOLDER` sets the results destination.
 `train.py --epochs N` changes training length. Use 15 to reproduce this experiment.
-Run `python SCRIPT.py --help` for all options.
+To see all options:
+
+```bash
+python data.py --help
+python train.py --help
+python evaluate.py --help
+```
 
 ## Reference results
 
@@ -210,3 +257,14 @@ fixed dataset and marker assignment, not variation across new datasets.
 
 Full PNG datasets and generated CSV tables are not tracked. The data generator,
 code, pinned environment, and seed-42 model weights support reproduction.
+
+## Reproduction check
+
+Checked on Windows 11 CPU with a fresh Python 3.12.14 virtual environment:
+package installation, source downloads without cached files, PNG creation,
+included-model evaluation, and full 15-epoch training for seed 42 all completed.
+The three retrained models had the same stored weight arrays as the included
+models, and both result CSVs matched exactly. This check used the pip setup;
+a fresh Conda environment and other operating systems were not tested.
+The five-seed table comes from the recorded experiment, not from five new runs
+in this installation check.
