@@ -23,7 +23,7 @@ We compare two questions:
 
 Download the repository ZIP and extract it, or clone it.
 For ZIP downloads, open a terminal in the extracted folder containing `data.py`
-and `requirements.txt` (usually `pa04-marker-shortcuts-main`). For Git:
+and `requirements.txt`. For Git:
 
 ```bash
 git clone https://github.com/mintleaf0831/pa04-marker-shortcuts.git
