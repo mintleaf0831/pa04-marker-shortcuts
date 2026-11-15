@@ -257,14 +257,3 @@ fixed dataset and marker assignment, not variation across new datasets.
 
 Full PNG datasets and generated CSV tables are not tracked. The data generator,
 code, pinned environment, and seed-42 model weights support reproduction.
-
-## Reproduction check
-
-Checked on Windows 11 CPU with a fresh Python 3.12.14 virtual environment:
-package installation, source downloads without cached files, PNG creation,
-included-model evaluation, and full 15-epoch training for seed 42 all completed.
-The three retrained models had the same stored weight arrays as the included
-models, and both result CSVs matched exactly. This check used the pip setup;
-a fresh Conda environment and other operating systems were not tested.
-The five-seed table comes from the recorded experiment, not from five new runs
-in this installation check.
